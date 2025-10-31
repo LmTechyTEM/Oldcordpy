@@ -9,16 +9,19 @@ class Channel:
         self.type = data['type']
         self.bot = bot
     async def send(self, content):
-        self.bot.requests.POST(f'channels/{self.id}',data={'content':content})
+        t = self.bot.requests.POST(f'channels/{self.id}/messages',data={'content':content})
+        print(t.text)
 
 class Guild:
     def __init__(self, data, bot):
         self.id = data['id']
         self.name = data['name']
-        self.channels = []
+        self.channels:Channel = []
+        self.roles:Role = []
         for channel in data['channels']:
             self.channels.append(Channel(channel, bot))
-
+        for role in data['roles']:
+            self.roles.append(Role(role))
 class Message:
     def __init__(self,data, bot):
         self.content = data['content']
@@ -37,4 +40,12 @@ class Message:
                 if channel.id == self.channel_id:
                     self.channel:Channel = channel
 
-
+class Role:
+    def __init__(self, data):
+        self.id = data['id']
+        self.name = data['name']
+        self.position = data['position']
+        self.color = data['color']
+        self.hoist = data['hoist']
+        self.mentionable = data['mentionable']
+        self.raw_permissions = data['permissions']
