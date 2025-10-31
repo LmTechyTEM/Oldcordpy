@@ -9,10 +9,12 @@ class Channel:
         self.type = data['type']
         self.bot = bot
     async def send(self, content):
-        self.bot.requester.POST(f'channels/{self.id}',data={'content':content})
+        self.bot.requests.POST(f'channels/{self.id}',data={'content':content})
 
 class Guild:
     def __init__(self, data, bot):
+        self.id = data['id']
+        self.name = data['name']
         self.channels = []
         for channel in data['channels']:
             self.channels.append(Channel(channel, bot))
