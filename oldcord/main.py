@@ -14,6 +14,7 @@ class Client:
         self.req = requests.session()
         self.requests = Requester(self.user_agent, self.url)
         self.token = None
+        self.guilds = []
     async def start(self, token=None):
         if self.url is None:
             print("Please specify an oldcord instance url.")
@@ -68,9 +69,9 @@ class Client:
                 d = data['d']
                 if event == "MESSAGE_CREATE":
                     if not isinstance(d, int):
-                        await self.on_message(Message(d)) 
+                        await self.on_message(Message(d, self)) 
                 if event == "READY":
                     await self.on_ready()
                     for guild in d['guilds']:
-                        Guild(guild, self)
+                        self.guilds.append(Guild(guild, self))
                     
