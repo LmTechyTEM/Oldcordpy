@@ -8,9 +8,10 @@ from .requester import Requester
 from .classes import *
 
 class Client:
-    def __init__(self, url, secure=False):
+    def __init__(self, url, debug=False):
         self.user_agent = "Oldcord Bot"
         self.url = url
+        self.debug = debug
         self.req = requests.session()
         self.requests = Requester(self.user_agent, self.url)
         self.token = None
@@ -65,7 +66,8 @@ class Client:
                     event = data['t']
                 except Exception as e:
                     pass
-                print(event)
+                if self.debug == True:
+                    print(event['t'])
                 d = data['d']
                 if event == "MESSAGE_CREATE":
                     if not isinstance(d, int):
@@ -74,4 +76,6 @@ class Client:
                     await self.on_ready()
                     for guild in d['guilds']:
                         self.guilds.append(Guild(guild, self))
+                    if self.debug == True:
+                        print(d)
                     

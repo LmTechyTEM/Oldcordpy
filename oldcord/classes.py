@@ -49,3 +49,7 @@ class Role:
         self.hoist = data['hoist']
         self.mentionable = data['mentionable']
         self.raw_permissions = data['permissions']
+
+class User:
+    def __init__(self, data):
+        pass
