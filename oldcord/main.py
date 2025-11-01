@@ -67,7 +67,7 @@ class Client:
                 except Exception as e:
                     pass
                 if self.debug == True:
-                    print(event['t'])
+                    print(event)
                 d = data['d']
                 if event == "MESSAGE_CREATE":
                     if not isinstance(d, int):
