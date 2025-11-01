@@ -36,9 +36,9 @@ class Message:
             for guild in self._self.guilds:
                 if guild.id == self.guild_id:
                     self.guild:Guild = guild
-            for channel in guild.channels:
-                if channel.id == self.channel_id:
-                    self.channel:Channel = channel
+                    for channel in guild.channels:
+                        if channel.id == self.channel_id:
+                            self.channel:Channel = channel
 
 class Role:
     def __init__(self, data):
