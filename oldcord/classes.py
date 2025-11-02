@@ -11,8 +11,10 @@ class Channel:
         self.last_message_id = data['last_message_id']
     async def send(self, content):
         t = self.bot.requests.POST(f'channels/{self.id}/messages',data={'content':content})
+        
         if self.bot.debug == True:
             print(t.text)
+        return Message(t.json(), self.bot)
 
 class GuildChannel(Channel):
     def __init__(self, data, bot):
@@ -61,6 +63,11 @@ class Message:
         for channel in self._self.dm_channels:
             if channel.id == self.channel_id:
                 self.channel:DMChannel = channel
+    async def edit(self, content):
+        
+        t = self._self.requests.PATCH(f'channels/{self.channel_id}/messages/{self.raw["id"]}',data={'content':content})
+
+        
 
 class Role:
     def __init__(self, data):
