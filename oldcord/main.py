@@ -25,62 +25,71 @@ class Client:
             print("Please specify a token.")
             return
         self.token = token
-        data = self.req.get(f"{self.url}/instance")
+        try:
+            data = self.req.get(f"{self.url}/instance")
+        except Exception as e:
+            print(f"Could not connect to instance: {e}")
+            print("Trying again in 5 seconds...")
+            await asyncio.sleep(5)
+            await self.start(token)
         gateway = f"{data.json()['gateway']}?encoding=json&v=6"
         self.requests._addToken(token)
-        async with websockets.connect(gateway) as ws:
-            identify_payload = {
-                "op": 2,
-                "d": {
-                    "token": f"Bot {token}",
-                    "properties": {
-                        "os": "Linux",
-                        "browser": "Firefox",
-                        "device": "Terminal",
-                        "referrer": f"{self.url}/selector",
-                        "referring_domain": f"{self.url}"
+        try:
+            async with websockets.connect(gateway) as ws:
+                identify_payload = {
+                    "op": 2,
+                    "d": {
+                        "token": f"Bot {token}",
+                        "properties": {
+                            "os": "Linux",
+                            "browser": "Firefox",
+                            "device": "Terminal",
+                            "referrer": f"{self.url}/selector",
+                            "referring_domain": f"{self.url}"
+                        }
                     }
                 }
-            }
-            await ws.send(json.dumps(identify_payload))
+                await ws.send(json.dumps(identify_payload))
 
-            resp = await ws.recv()
-            print("Received:", resp)
+                resp = await ws.recv()
+                print("Received:", resp)
 
-            data = json.loads(resp)
-            interval = data["d"]["heartbeat_interval"] / 1000
-            seq = 0
+                data = json.loads(resp)
+                interval = data["d"]["heartbeat_interval"] / 1000
+                seq = 0
 
-            async def heartbeat():
-                nonlocal seq
+                async def heartbeat():
+                    nonlocal seq
+                    while True:
+                        await asyncio.sleep(interval)
+                        seq += 1
+                        await ws.send(json.dumps({"op": 1, "d": seq}))
+
+                asyncio.create_task(heartbeat())
+
                 while True:
-                    await asyncio.sleep(interval)
-                    seq += 1
-                    await ws.send(json.dumps({"op": 1, "d": seq}))
-
-            asyncio.create_task(heartbeat())
-
-            while True:
-                msg = await ws.recv()
-                data = json.loads(msg)
-                try:
-                    event = data['t']
-                except Exception as e:
-                    pass
-                if self.debug == True:
-                    print(event)
-                d = data['d']
-                if event == "MESSAGE_CREATE":
-                    if not isinstance(d, int):
-                        await self.on_message(Message(d, self)) 
-                if event == "READY":
-                    await self.on_ready(User(d['user'], self))
-                    for guild in d['guilds']:
-                        self.guilds.append(Guild(guild, self))
-                    for channel in d['private_channels']:
-                        self.dm_channels.append(DMChannel(channel, self))
+                    msg = await ws.recv()
+                    data = json.loads(msg)
+                    try:
+                        event = data['t']
+                    except Exception as e:
+                        pass
                     if self.debug == True:
-                        for i in d:
-                            print(i)
-
-                            
+                        print(event)
+                    d = data['d']
+                    if event == "MESSAGE_CREATE":
+                        if not isinstance(d, int):
+                            await self.on_message(Message(d, self)) 
+                    if event == "READY":
+                        await self.on_ready(User(d['user'], self))
+                        for guild in d['guilds']:
+                            self.guilds.append(Guild(guild, self))
+                        for channel in d['private_channels']:
+                            self.dm_channels.append(DMChannel(channel, self))
+                        if self.debug == True:
+                            for i in d:
+                                print(i)
+        except websockets.exceptions.ConnectionClosed:
+            print("Connection closed, reconnecting...")
+            await self.start(token)
+                                
