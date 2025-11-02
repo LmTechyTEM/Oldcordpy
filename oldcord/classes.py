@@ -4,13 +4,27 @@ from .requester import Requester
 class Channel:
     def __init__(self, data, bot):
         self.raw = data
-        self.id = data['id']
-        self.name = data['name']
-        self.type = data['type']
         self.bot = bot
+        self.id = data['id']
+        self._type = data['type']
+        self.guild_id = data['guild_id']
+        self.last_message_id = data['last_message_id']
     async def send(self, content):
         t = self.bot.requests.POST(f'channels/{self.id}/messages',data={'content':content})
         print(t.text)
+
+class GuildChannel(Channel):
+    def __init__(self, data, bot):
+        super().__init__(data, bot)
+        self.name = data['name']
+        self.position = data['position']
+
+class DMChannel(Channel):
+    def __init__(self, data, bot):
+        super().__init__(data, bot)
+        self.recipients = []
+        for user in data['recipients']:
+            self.recipients.append(User(user, bot))
 
 class Guild:
     def __init__(self, data, bot):
@@ -19,7 +33,7 @@ class Guild:
         self.channels:Channel = []
         self.roles:Role = []
         for channel in data['channels']:
-            self.channels.append(Channel(channel, bot))
+            self.channels.append(GuildChannel(channel, bot))
         for role in data['roles']:
             self.roles.append(Role(role))
 class Message:
@@ -39,6 +53,12 @@ class Message:
                     for channel in guild.channels:
                         if channel.id == self.channel_id:
                             self.channel:Channel = channel
+        else:
+            self.guild_id = None
+            self.guild = None
+        for channel in self._self.dm_channels:
+            if channel.id == self.channel_id:
+                self.channel:DMChannel = channel
 
 class Role:
     def __init__(self, data):
@@ -51,5 +71,9 @@ class Role:
         self.raw_permissions = data['permissions']
 
 class User:
-    def __init__(self, data):
-        pass
+    def __init__(self, data, bot):
+        self.id = data['id']
+        self.username = data['username']
+        self.discriminator = data['discriminator']
+        self.bot = data['bot']
+        self._avatar = data.get('avatar')

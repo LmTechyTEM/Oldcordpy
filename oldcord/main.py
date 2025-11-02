@@ -16,6 +16,7 @@ class Client:
         self.requests = Requester(self.user_agent, self.url)
         self.token = None
         self.guilds = []
+        self.dm_channels = []
     async def start(self, token=None):
         if self.url is None:
             print("Please specify an oldcord instance url.")
@@ -73,9 +74,13 @@ class Client:
                     if not isinstance(d, int):
                         await self.on_message(Message(d, self)) 
                 if event == "READY":
-                    await self.on_ready()
+                    await self.on_ready(User(d['user'], self))
                     for guild in d['guilds']:
                         self.guilds.append(Guild(guild, self))
+                    for channel in d['private_channels']:
+                        self.dm_channels.append(DMChannel(channel, self))
                     if self.debug == True:
-                        print(d)
-                    
+                        for i in d:
+                            print(i)
+
+                            
