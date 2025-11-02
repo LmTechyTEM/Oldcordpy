@@ -45,6 +45,7 @@ class Message:
         self.raw = data
         self.guild = None
         self.channel = None
+        self.author = User(data['author'], bot)
         self.guild_id = data.get('guild_id')
         if data.get('guild_id') != None:
             self.guild_id = data['guild_id']
