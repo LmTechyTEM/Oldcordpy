@@ -80,6 +80,15 @@ class Client:
                     if event == "MESSAGE_CREATE":
                         if not isinstance(d, int):
                             await self.on_message(Message(d, self)) 
+                    if event == "GUILD_CREATE":
+                        self.guilds.append(Guild(d, self))
+                    if event == "CHANNEL_CREATE":
+                        if d['guild_id']:
+                            for guild in self.guilds:
+                                if guild.id == d['guild_id']:
+                                    guild.channels.append(GuildChannel(d, self))
+                        else:
+                            self.dm_channels.append(DMChannel(d, self))
                     if event == "READY":
                         await self.on_ready(User(d['user'], self))
                         for guild in d['guilds']:
@@ -89,6 +98,7 @@ class Client:
                         if self.debug == True:
                             for i in d:
                                 print(i)
+                    
         except websockets.exceptions.ConnectionClosed:
             print("Connection closed, reconnecting...")
             await self.start(token)

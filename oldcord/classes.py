@@ -11,7 +11,7 @@ class Channel:
         self.last_message_id = data['last_message_id']
     async def send(self, content):
         t = self.bot.requests.POST(f'channels/{self.id}/messages',data={'content':content})
-        if self.debug == True:
+        if self.bot.debug == True:
             print(t.text)
 
 class GuildChannel(Channel):
