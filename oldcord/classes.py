@@ -15,6 +15,13 @@ class Channel:
         if self.bot.debug == True:
             print(t.text)
         return Message(t.json(), self.bot)
+    async def fetch_messages(self, limit=50):
+        t = self.bot.requests.GET(f'channels/{self.id}/messages?limit={limit}')
+        print(t)
+        messages = []
+        for message in t.json():
+            messages.append(Message(message, self.bot))
+        return messages
 
 class GuildChannel(Channel):
     def __init__(self, data, bot):
@@ -47,7 +54,7 @@ class Message:
         self.raw = data
         self.guild = None
         self.channel = None
-        self.author = User(data['author'], bot)
+        self.author:User = User(data['author'], bot)
         self.guild_id = data.get('guild_id')
         if data.get('guild_id') != None:
             self.guild_id = data['guild_id']
@@ -66,7 +73,8 @@ class Message:
     async def edit(self, content):
         
         t = self._self.requests.PATCH(f'channels/{self.channel_id}/messages/{self.raw["id"]}',data={'content':content})
-
+    async def delete(self):
+        t = self._self.requests.DELETE(f'channels/{self.channel_id}/messages/{self.raw["id"]}')
         
 
 class Role:
