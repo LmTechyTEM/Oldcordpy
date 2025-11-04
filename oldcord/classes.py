@@ -23,6 +23,13 @@ class Channel:
             messages.append(Message(message, self.bot))
         return messages
 
+class Presence:
+    def __init__(self, data, bot):
+        self.game_id = data['game_id']
+        self.status = data['status']
+        self.activities = data['activities'] # whatever the list contains ill add in the future
+        self.user:User = User(data['user'], bot)
+        self.guild_id = data.get('guild_id') #idk why its here but it is.
 class GuildChannel(Channel):
     def __init__(self, data, bot):
         super().__init__(data, bot)
@@ -42,6 +49,9 @@ class Guild:
         self.name = data['name']
         self.channels:Channel = []
         self.roles:Role = []
+        self.presences:Presence = []
+        for presence in data.get('presences'):
+            self.presences.append(Presence(presence, bot))
         for channel in data['channels']:
             self.channels.append(GuildChannel(channel, bot))
         for role in data['roles']:
