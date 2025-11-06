@@ -6,16 +6,7 @@ import asyncio
 from .requester import Requester
 
 from .classes import *
-from .commands import cmds
-
-
-# ill just throw the token into cmds like you use the commmands class and if the client sees it itll put the bot client in there so piss off
-class Commands:
-    def __init__(self, prefix=""):
-        self.prefix = prefix
-    def process(self):
-        for i in self:
-            print(i)
+from .commands import Commands
 
 
 class Client:
@@ -30,7 +21,7 @@ class Client:
         self._cmds = []
         self.user:User = None
         self.dm_channels = []
-        self.commands: Commands | None = commands       
+        self.commands:Commands = commands      
     async def start(self, token=None):
         if self.url is None:
             print("Please specify an oldcord instance url.")
@@ -66,7 +57,6 @@ class Client:
                 await ws.send(json.dumps(identify_payload))
 
                 resp = await ws.recv()
-                print("Received:", resp)
 
                 data = json.loads(resp)
                 interval = data["d"]["heartbeat_interval"] / 1000
@@ -98,13 +88,13 @@ class Client:
                     if event == "MESSAGE_CREATE":
                         if not isinstance(d, int):
                             message = Message(d, self)
-                            if self.commands:
-                                commands = cmds(self.commands.prefix, self)
-                                await commands.process()
+                            await self.commands.process(message)
+                                
 
                             await self.on_message(Message(d, self)) 
                     if event == "GUILD_CREATE":
-                        self.guilds.append(Guild(d, self))
+                        await self.guilds.append(Guild(d, self))
+                    
                     if event == "CHANNEL_CREATE":
                         if d['guild_id']:
                             for guild in self.guilds:
@@ -120,7 +110,7 @@ class Client:
                         for channel in d['private_channels']:
                             self.dm_channels.append(DMChannel(channel, self))
                         if self.debug == True:
-                            print(d['user'])
+                            pass
 
                                 
                     if event == "PRESENCE_UPDATE":
