@@ -88,7 +88,9 @@ class Client:
                     if event == "MESSAGE_CREATE":
                         if not isinstance(d, int):
                             message = Message(d, self)
-                            await self.commands.process(message)
+                            print(type(self.commands))
+                            if self.commands != None:
+                                await self.commands.process(message)
                                 
 
                             await self.on_message(Message(d, self)) 
